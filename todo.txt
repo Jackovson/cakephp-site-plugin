@@ -7,6 +7,10 @@
 - menu system
 - general website pages : information/contact/cgu/cgv/cnil/dons/errors/feedback etc
 
+- mini cms
+- mini wiki
+- mini forum
+
 - see cakephp scaffold system
 
 - status dashbord
