@@ -12,6 +12,7 @@ App::import('Model', 'Site.LogRequest');
  * - session_id
  * - ip
  * - time
+ * - memory peak usage
  * - memory usage
  *
  * Limit :
@@ -28,8 +29,26 @@ App::import('Model', 'Site.LogRequest');
  */
 class SiteLogRequestComponent extends Object {
 
+	public $components = array('RequestHandler', 'Cookie');
+
 	protected $logProbability = 1;// 10%
-	protected $log = array('url', 'request', 'time');//
+	protected $log = array(
+		'url',
+		//'urlFull',
+		//'request',
+		'time',
+		'memory_peak',
+		'ip',
+		'session',
+		// related to request
+		'http_method',
+		'referer',
+		'ajax',// is ajax ?
+		'mobile',// is called by mobile device ?
+		'feed', // RSS or Atom
+		'ssl',
+		'flash',
+	);//
 
 	protected $logData = array();
 	protected $shouldLog = FALSE;
@@ -63,6 +82,7 @@ class SiteLogRequestComponent extends Object {
 			$this->logData['created'] = NULL;
 			$this->logData['status'] = 'init';
 
+			$LogModel->create();
 			$LogModel->save($this->logData);
 			$this->logData['_id'] = $LogModel->id;
 		}
@@ -91,17 +111,57 @@ class SiteLogRequestComponent extends Object {
 				$value = array('controller' => $url['controller'], 'action' => $url['action'], 'plugin' => $url['plugin']);
 				break;
 
-			case 'urlExtended':
+			case 'urlFull':
 				$value = $controller->params;
 				break;
 			
 			case 'ip':
-
+				$value = $this->RequestHandler->getClientIp(TRUE);
 				break;
 
 			case 'session':
-
+				debug($controller->Session->read());
 				break;
+
+			case 'memory_peak':
+				$value = memory_get_peak_usage(TRUE);
+				break;
+
+			case 'memory':
+				$value = memory_get_usage(TRUE);
+				break;
+
+			case 'http_method':
+				$value = env('REQUEST_METHOD');
+				break;
+
+			case 'referer':
+				$value = $this->RequestHandler->getReferer();
+				break;
+
+			case 'ajax':
+				$value = $this->RequestHandler->isAjax();
+				break;
+
+			case 'mobile':
+				$value = $this->RequestHandler->isMobile();
+				break;
+
+			case 'feed':
+				$value = ($this->RequestHandler->isRss() OR $this->RequestHandler->isAtom());
+				break;
+
+			case 'ssl':
+				$value = $this->RequestHandler->isFlash();
+				break;
+
+			case 'flash':
+				$value = $this->RequestHandler->isSsl();
+				break;
+
+			case 'time':
+				break;
+			
 		}
 
 		if($value !== NULL) {
@@ -149,15 +209,14 @@ class SiteLogRequestComponent extends Object {
 	function shutdown(&$controller) {
 
 		if($this->shouldLog) {
+			$this->logData = array('_id' => $this->logData['_id']);// reset object to just update new fields
 			foreach($this->log as $field) {
 				$this->buildFieldOnShutdown($field, $controller);
 			}
 
 			$LogModel = $this->_getModel($this->model, $controller);
-			$this->logData['created'] = NULL;
 			$this->logData['status'] = 'shutdown';
 
-			debug($this->logData);
 			$LogModel->save($this->logData);
 		}
 		
