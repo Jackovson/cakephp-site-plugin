@@ -29,7 +29,7 @@ App::import('Model', 'Site.LogRequest');
  */
 class SiteLogRequestComponent extends Object {
 
-	public $components = array('RequestHandler', 'Cookie');
+	public $components = array('RequestHandler');
 
 	protected $logProbability = 1;// 10%
 	protected $log = array(
@@ -79,10 +79,9 @@ class SiteLogRequestComponent extends Object {
 
 			$LogModel = $this->_getModel($this->model, $controller);
 
+			$LogModel->create();
 			$this->logData['created'] = NULL;
 			$this->logData['status'] = 'init';
-
-			$LogModel->create();
 			$LogModel->save($this->logData);
 			$this->logData['_id'] = $LogModel->id;
 		}
@@ -120,7 +119,8 @@ class SiteLogRequestComponent extends Object {
 				break;
 
 			case 'session':
-				debug($controller->Session->read());
+				$this->controller->Session->read();// read session to be sure component is active
+				$value = $this->controller->Session->id();
 				break;
 
 			case 'memory_peak':

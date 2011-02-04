@@ -1,0 +1,12 @@
+- limits request : protect spamm/ddos
+- cache model queries : especially for content data (exemple : groups etc)
+- containable behavior
+- sphinx integration
+- usefull features behaviors : commentable/rattable/photoable/documentable
+- system to serve template and/or html files
+- menu system
+- general website pages : information/contact/cgu/cgv/cnil/dons/errors/feedback etc
+
+- see cakephp scaffold system
+
+- status dashbord
