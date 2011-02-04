@@ -14,26 +14,6 @@
 class SiteComponent extends Object {
 
 	public $components = array('Auth');
-
-	/**
-	 * list of roles for each action
-	 * @var <type>
-	 */
-	public $accessActions = array(
-		/*
-		'actionname' => array(),
-		//*/
-	);
-
-	/**
-	 * list of roles for this controller
-	 * @var <type>
-	 */
-	public $accessController = array(/*
-		'admin',
-		'moderator',//*/
-	);
-
 	
 	// internal data
 	protected $_loggedUser = NULL;
@@ -51,19 +31,58 @@ class SiteComponent extends Object {
 		// - you are admin
 		// if not :
 		// - have method isAuthorizedMyaction() returning true
-		// if no method :
+		// if no such method :
+		// - have method isAuthorizedController() return true
+		// if no such method :
 		// - check roles from $accessAction (must have each roles)
 		// if no action defined in accessAction
 		//- check roles from $accessController (must have each roles)
 		// if not... not allowed
 
+		$UserModel = $this->_getModel($this->Auth->userModel);
 		$user = $this->getUser();
-
 		debug($user);
-		//exit;
+		
+		// is admin ?
+		if($UserModel->isSuperAdmin($user)) {
+			return TRUE;
+		}
+		debug('no super admin');
 
+		// check isAuthorizedMyaction()
+		$method = 'isAuthorized'.ucfirst($controller->action);
+		if(is_callable(array($controller, $method))) {
+			debug('match isAuthA ?');
+			return $controller->{$method}($user);
+		}
+		debug('no action method');
+		
+		// check isAuthorizedController()
+		$method = 'isAuthorizedController';
+		if(is_callable(array($controller, $method))) {
+			debug('match isAuthC ?');
+			return $controller->{$method}($user);
+		}
+		
+		debug('no controller method');
+		
+		// check if roles are defined in $controller->actionRoles
+		if(isset($controller->actionsCredentials) AND isset($controller->actionsCredentials[$controller->action])) {
+			debug('match action controllerCredentials ?');
+			return $UserModel->haveRoles($user, $controller->actionsCredentials[$controller->action]);
+		}
 
-		return FALSE;
+		debug('no actions credentials');
+		
+		// check if roles are defined in $controller->controllerRoles
+		if(isset($controller->controllerCredentials)) {
+			debug('match controller controllerCredentials ?');
+			return $UserModel->haveRoles($user, $controller->controllerCredentials);
+		}
+		
+		debug('no controller credentials');
+		
+		return TRUE;
 	}
 
 /**
@@ -104,56 +123,10 @@ class SiteComponent extends Object {
 			$UserModel = $this->_getModel($this->Auth->userModel);
 			$this->_loggedUser = $UserModel->find('first', array('conditions' => array($UserModel->primaryKey => $authUser[$UserModel->alias][$UserModel->primaryKey])));
 
-			// get computed roles
-			$this->_loggedUser['User']['_roles'] = $this->computeRoles($this->_loggedUser);
+			// compute credentials
+			$this->_loggedUser = $UserModel->cacheCredentials($this->_loggedUser);
 		}
 		return $this->_loggedUser;
-	}
-
-	public function getRoles(array $user) {
-		if(!empty())
-	}
-
-	public function refreshRoles()
-
-	public function computeRoles(array $user) {
-
-		$roles = array();
-
-		// compute roles from groups
-		if(!empty($user['UserGroups'])) {
-			// add all roles
-			foreach($user['UserGroups'] as $userGroup) {
-				if(!empty($userGroup['UserGroup']['haveRoles'])) {
-					foreach($userGroup['UserGroup']['haveRoles'] as $role) {
-						$roles[$role] = $role;
-					}
-				}
-			}
-
-			// remove all no roles
-			foreach($user['UserGroups'] as $userGroup) {
-				if(!empty($userGroup['UserGroup']['dontHaveRoles'])) {
-					foreach($userGroup['UserGroup']['dontHaveRoles'] as $role) {
-						unset($roles[$role]);
-					}
-				}
-			}
-		}// end groups
-
-		// and personnal roles
-		if(!empty($user['User']['haveRoles'])) {
-			foreach($user['User']['haveRoles'] as $role) {
-				$roles[$role] = $role;
-			}
-		}
-		if(!empty($user['User']['dontHaveRoles'])) {
-			foreach($user['User']['dontHaveRoles'] as $role) {
-				unset($user[$role]);
-			}
-		}
-
-		return $roles;
 	}
 
 /**
