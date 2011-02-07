@@ -34,12 +34,12 @@ class SimpleCredentialableBehavior extends CredentialableBehavior {
 	}
 
 
-	public function checkCredentials(Model $Model, array $conditionCredentials, array $credentials) {
-		return $this->_getManager($Model)->checkCredentials($conditionCredentials, $credentials);
+	public function checkCredentials(Model $Model, array  $user, array $conditionCredentials) {
+		return $this->_getManager($Model)->checkCredentials($conditionCredentials, $this->getCredentials($Model, $user));
 	}
 	
-	public function haveCredential(Model $Model, array $user, $credential) {
-		return $this->checkCredentials($Model, array($credential), $this->getCredentials($Model, $user));
+	public function checkCredential(Model $Model, array $user, $credential) {
+		return $this->checkCredentials($Model, $this->getCredentials($Model, $user),  array($credential));
 	}
 
 	public function  computeCredentials(Model $Model, array $user) {
@@ -72,11 +72,17 @@ class SimpleCredentialableBehavior extends CredentialableBehavior {
 				$credentials[$credential] = $credential;
 			}
 		}
+		// add basic credential if user is looged in
+		if(!empty($user)) {
+			$credentials['logged_in'] = 'logged_in';
+		}
+		
 		if(!empty($user['User']['dontHaveCredentials'])) {
 			foreach($user['User']['dontHaveCredentials'] as $credential) {
 				unset($user[$credential]);
 			}
 		}
+		
 
 		return $credentials;
 	}

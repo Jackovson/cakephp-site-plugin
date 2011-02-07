@@ -61,9 +61,9 @@ abstract class CredentialableBehavior extends ModelBehavior {
 	 * @return boolean
 	 */
 	public function isSuperAdmin(Model $Model, array $user) {
-		return $this->haveCredential($Model, $user, 'superadmin');
+		return $this->checkCredential($Model, $user, 'superadmin');
 	}
 	
 	// check if a user have a credential
-	abstract public function haveCredential(Model $Model, array $user, $credential);
+	abstract public function checkCredential(Model $Model, array $user, $credential);
 }

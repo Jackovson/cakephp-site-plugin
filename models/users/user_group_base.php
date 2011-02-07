@@ -1,11 +1,11 @@
 <?php
 App::import('Model', 'Mongodb.MongodbModel');
 
-class UserProfileBase extends MongodbModel{
+class UserGroupBase extends MongodbModel{
 
-	public $name	 = 'UserProfile';
+	public $name	 = 'UserGroup';
 
-	public $useTable = 'user_profiles';
+	public $useTable = 'user_groups';
 
 	public $primaryKey = '_id';
 
@@ -14,8 +14,11 @@ class UserProfileBase extends MongodbModel{
 	);
 	/*
 	var $mongoSchema = array(
-		'data'=>array('type'=>'string'),
-		'expires'=>array('type'=>'string'),
+		'identifier'=>array('type'=>'string'),
+	  'name'=>array('type'=>'string'),
+	  'desc'=>array('type'=>'string'),
+		'haveRoles'=>array('type'=>'array'),
+		'dontHaveRoles'=>array('type'=>'array'),
 		'created'=>array('type'=>'datetime'),
 		'modified'=>array('type'=>'datetime'),
 	);
@@ -24,12 +27,4 @@ class UserProfileBase extends MongodbModel{
 	public $belongsTo = array(
 		'User',
   );
-
-	public $hasMany = array(
-		
-	);
-
-	public $hasOne = array(
-			
-	);
 }

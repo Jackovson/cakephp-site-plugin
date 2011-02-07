@@ -5,7 +5,8 @@
 - usefull features behaviors : commentable/rattable/photoable/documentable
 - system to serve template and/or html files
 - menu system
-- general website pages : information/contact/cgu/cgv/cnil/dons/errors/feedback etc
+- general website pages : error/information/contact/cgu/cgv/cnil/dons/errors/feedback etc
+- website gloabl features : online, regitrations open/moderated/closed, errors
 
 - mini cms
 - mini wiki

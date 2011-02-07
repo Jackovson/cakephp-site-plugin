@@ -1,6 +1,7 @@
 <?php
+App::import('Model', 'Mongodb.MongodbModel');
 
-class UserSession extends AppModel{
+class UserSessionBase extends MongodbModel{
 
 	public $name	 = 'Session';
 
